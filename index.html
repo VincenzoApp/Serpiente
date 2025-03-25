@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Responsive</title>
+    <title>Snake Game</title>
     <style>
         * {
             margin: 0;
@@ -26,7 +26,7 @@
             position: relative;
             width: 95vw;
             height: 95vh;
-            max-width: 500px;
+            max-width: 600px;
             max-height: 800px;
             display: flex;
             flex-direction: column;
@@ -40,6 +40,7 @@
             width: 100%;
             height: 80vh;
             max-height: 650px;
+            aspect-ratio: 1/1.4;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
         }
         
@@ -51,7 +52,6 @@
             text-shadow: 0 0 5px #0f0;
             width: 100%;
             text-align: center;
-            order: 2; /* Posiziona in basso */
         }
         
         #game-over {
@@ -163,7 +163,8 @@
         
         // Costanti di gioco
         const SNAKE_SPEED = 10;
-        const GRID_SIZE = 24; // Aumentato per il canvas più grande
+        const GRID_COLS = 24;
+        const GRID_ROWS = 30;
         
         // Variabili di stato
         let box, canvasWidth, canvasHeight;
@@ -187,21 +188,26 @@
         
         function resizeCanvas() {
             const container = document.getElementById('game-container');
-            canvasWidth = Math.min(container.clientWidth, 500);
-            canvasHeight = Math.min(container.clientHeight * 0.8, 650); // 40% più grande
+            const containerWidth = Math.min(container.clientWidth, 600);
+            const containerHeight = Math.min(container.clientHeight * 0.8, 650);
             
-            // Calcola la dimensione della cella in base alla dimensione minore
-            box = Math.floor(Math.min(canvasWidth, canvasHeight) / GRID_SIZE);
+            // Calcola la dimensione della cella mantenendo il rapporto aspetto
+            const boxWidth = Math.floor(containerWidth / GRID_COLS);
+            const boxHeight = Math.floor(containerHeight / GRID_ROWS);
+            box = Math.min(boxWidth, boxHeight);
             
-            // Ricalcola le dimensioni del canvas per adattarsi alla griglia
-            canvas.width = box * GRID_SIZE;
-            canvas.height = box * GRID_SIZE;
+            // Ricalcola le dimensioni del canvas
+            canvas.width = box * GRID_COLS;
+            canvas.height = box * GRID_ROWS;
+            
+            // Centra il canvas orizzontalmente
+            canvas.style.margin = '0 auto';
         }
         
         function setupGameElements() {            
             // Inizializza serpente al centro
-            const startX = Math.floor(GRID_SIZE / 3);
-            const startY = Math.floor(GRID_SIZE / 2);
+            const startX = Math.floor(GRID_COLS / 3);
+            const startY = Math.floor(GRID_ROWS / 2);
             
             snake = [
                 {x: startX * box, y: startY * box},
@@ -233,8 +239,8 @@
             
             do {
                 newFood = {
-                    x: Math.floor(Math.random() * (GRID_SIZE - 2)) * box + box,
-                    y: Math.floor(Math.random() * (GRID_SIZE - 2)) * box + box
+                    x: Math.floor(Math.random() * (GRID_COLS - 2)) * box + box,
+                    y: Math.floor(Math.random() * (GRID_ROWS - 2)) * box + box
                 };
                 
                 overlapping = snake.some(segment => 
@@ -258,8 +264,8 @@
             
             do {
                 newSpecialFood = {
-                    x: Math.floor(Math.random() * (GRID_SIZE - 2)) * box + box,
-                    y: Math.floor(Math.random() * (GRID_SIZE - 2)) * box + box,
+                    x: Math.floor(Math.random() * (GRID_COLS - 2)) * box + box,
+                    y: Math.floor(Math.random() * (GRID_ROWS - 2)) * box + box,
                     type: type,
                     spawnTime: Date.now(),
                     initialPhase: true,
