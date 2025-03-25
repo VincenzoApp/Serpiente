@@ -86,6 +86,23 @@
         #restart-btn:hover {
             background-color: #45a049;
         }
+
+        #menu-btn {
+            margin-top: 15px;
+            padding: 15px 30px;
+            font-size: 24px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+            transition: background-color 0.3s;
+        }
+
+        #menu-btn:hover {
+            background-color: #0b7dda;
+        }
         
         #start-screen {
             position: absolute;
@@ -124,6 +141,23 @@
             background-color: #45a049;
         }
 
+        #fullscreen-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+            transition: background-color 0.3s;
+        }
+
+        #fullscreen-btn:hover {
+            background-color: #e68a00;
+        }
+
         @media (orientation: landscape) {
             #game-container {
                 max-width: 90vh;
@@ -141,10 +175,12 @@
         <div id="game-over">
             GAME OVER<br>
             <button id="restart-btn">Ricomincia</button>
+            <button id="menu-btn">Volver al Menú</button>
         </div>
         <div id="start-screen">
             <h1 id="start-title">SNAKE</h1>
             <button id="start-btn">Inizia</button>
+            <button id="fullscreen-btn">Pantalla Completa</button>
         </div>
     </div>
 
@@ -156,8 +192,10 @@
         const highscoreDisplay = document.getElementById('highscore');
         const gameOverDisplay = document.getElementById('game-over');
         const restartBtn = document.getElementById('restart-btn');
+        const menuBtn = document.getElementById('menu-btn');
         const startScreen = document.getElementById('start-screen');
         const startBtn = document.getElementById('start-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
         
         // Costanti di gioco
         const SNAKE_SPEED = 10;
@@ -175,6 +213,53 @@
         let gameOver = false;
         let gameStarted = false;
         let lastRenderTime = 0;
+
+        // Fullscreen functions
+        function isMobileDevice() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
+
+        function requestFullscreen() {
+            const element = document.documentElement;
+            if (element.requestFullscreen) {
+                element.requestFullscreen().catch(err => {
+                    console.error('Error attempting to enable fullscreen:', err);
+                });
+            } else if (element.mozRequestFullScreen) { // Firefox
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) { // Chrome, Safari, Opera
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { // IE/Edge
+                element.msRequestFullscreen();
+            }
+        }
+
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) { // Firefox
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) { // Chrome, Safari, Opera
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { // IE/Edge
+                document.msExitFullscreen();
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                requestFullscreen();
+            } else {
+                exitFullscreen();
+            }
+        }
+
+        // Check if mobile and show fullscreen button
+        if (isMobileDevice()) {
+            fullscreenBtn.style.display = 'block';
+        } else {
+            fullscreenBtn.style.display = 'none';
+        }
 
         // Inizializzazione del gioco
         function initGame() {
@@ -717,6 +802,14 @@
             hideGameOver();
             initGame();
         });
+
+        menuBtn.addEventListener('click', () => {
+            window.location.href = 'https://vincenzoapp.github.io/Test03/index.html';
+        });
+
+        fullscreenBtn.addEventListener('click', () => {
+            toggleFullscreen();
+        });
         
         // Ridimensionamento finestra
         window.addEventListener('resize', () => {
@@ -724,9 +817,26 @@
                 resizeCanvas();
             }
         });
-        
+
+        // Fullscreen change event
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.textContent = 'Salir de Pantalla Completa';
+            } else {
+                fullscreenBtn.textContent = 'Pantalla Completa';
+            }
+        });
+
         // Mostra schermata iniziale
         startScreen.style.display = 'flex';
+
+        // Try to enter fullscreen on mobile after user interaction
+        if (isMobileDevice()) {
+            document.addEventListener('click', function initialInteraction() {
+                requestFullscreen();
+                document.removeEventListener('click', initialInteraction);
+            }, { once: true });
+        }
     </script>
 </body>
 </html>
