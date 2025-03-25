@@ -79,7 +79,7 @@
 </head>
 <body>
     <div id="game-container">
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <canvas id="gameCanvas" width="400" height="520"></canvas> <!-- Modificato da 400 a 520 (30% in più) -->
         <div id="scoreboard">
             Punteggio: <span id="score">0</span> | Record: <span id="highscore">0</span>
         </div>
@@ -92,13 +92,14 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const box = 20;
-        const canvasSize = 400;
+        const canvasWidth = 400;
+        const canvasHeight = 520; // 400 + 30% = 520
         const startBtn = document.getElementById('start-btn');
         const startMessage = document.getElementById('start-message');
         
         // Imposta dimensioni fisse
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
         
         let snake = [];
         let direction = 'RIGHT';
@@ -117,9 +118,9 @@
         // Funzione per inizializzare il gioco
         function initGame() {
             snake = [
-                {x: 9 * box, y: 9 * box},
-                {x: 8 * box, y: 9 * box},
-                {x: 7 * box, y: 9 * box}
+                {x: 9 * box, y: Math.floor(canvasHeight/box/2) * box}, // Centrato verticalmente
+                {x: 8 * box, y: Math.floor(canvasHeight/box/2) * box},
+                {x: 7 * box, y: Math.floor(canvasHeight/box/2) * box}
             ];
             direction = 'RIGHT';
             nextDirection = 'RIGHT';
@@ -433,7 +434,7 @@
             } 
             // Controlla se mangia cibo speciale
             else if (specialFood && head.x === specialFood.x && head.y === specialFood.y) {
-                score += specialFood.type === 'donut' ? 3 : 5; // Più punti per la ciambella
+                score += specialFood.type === 'donut' ? 3 : 5;
                 // Aggiungi più segmenti per cibo speciale
                 for (let i = 0; i < (specialFood.type === 'donut' ? 3 : 4); i++) {
                     snake.push({...snake[snake.length-1]});
