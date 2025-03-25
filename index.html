@@ -27,16 +27,19 @@
             width: 95vw;
             height: 95vh;
             max-width: 500px;
+            max-height: 800px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: space-between;
         }
         
         canvas {
             background-color: black;
             border: 2px solid #333;
             width: 100%;
-            height: 100%;
+            height: 80vh;
+            max-height: 650px;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
         }
         
@@ -44,7 +47,11 @@
             color: white;
             font-size: 20px;
             margin: 10px 0;
+            padding: 10px 0;
             text-shadow: 0 0 5px #0f0;
+            width: 100%;
+            text-align: center;
+            order: 2; /* Posiziona in basso */
         }
         
         #game-over {
@@ -156,6 +163,7 @@
         
         // Costanti di gioco
         const SNAKE_SPEED = 10;
+        const GRID_SIZE = 24; // Aumentato per il canvas più grande
         
         // Variabili di stato
         let box, canvasWidth, canvasHeight;
@@ -179,24 +187,26 @@
         
         function resizeCanvas() {
             const container = document.getElementById('game-container');
-            canvasWidth = container.clientWidth;
-            canvasHeight = container.clientHeight;
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
+            canvasWidth = Math.min(container.clientWidth, 500);
+            canvasHeight = Math.min(container.clientHeight * 0.8, 650); // 40% più grande
             
-            if (gameStarted) {
-                box = Math.floor(Math.min(canvasWidth / 20, canvasHeight / 30));
-            }
+            // Calcola la dimensione della cella in base alla dimensione minore
+            box = Math.floor(Math.min(canvasWidth, canvasHeight) / GRID_SIZE);
+            
+            // Ricalcola le dimensioni del canvas per adattarsi alla griglia
+            canvas.width = box * GRID_SIZE;
+            canvas.height = box * GRID_SIZE;
         }
         
-        function setupGameElements() {
-            box = Math.floor(Math.min(canvasWidth / 20, canvasHeight / 30));
+        function setupGameElements() {            
+            // Inizializza serpente al centro
+            const startX = Math.floor(GRID_SIZE / 3);
+            const startY = Math.floor(GRID_SIZE / 2);
             
-            // Inizializza serpente
             snake = [
-                {x: 9 * box, y: Math.floor(canvasHeight/box/2) * box},
-                {x: 8 * box, y: Math.floor(canvasHeight/box/2) * box},
-                {x: 7 * box, y: Math.floor(canvasHeight/box/2) * box}
+                {x: startX * box, y: startY * box},
+                {x: (startX-1) * box, y: startY * box},
+                {x: (startX-2) * box, y: startY * box}
             ];
             
             direction = 'RIGHT';
@@ -223,12 +233,9 @@
             
             do {
                 newFood = {
-                    x: Math.floor(Math.random() * (canvas.width / box)) * box,
-                    y: Math.floor(Math.random() * (canvas.height / box)) * box
+                    x: Math.floor(Math.random() * (GRID_SIZE - 2)) * box + box,
+                    y: Math.floor(Math.random() * (GRID_SIZE - 2)) * box + box
                 };
-                
-                newFood.x = Math.min(newFood.x, canvas.width - box);
-                newFood.y = Math.min(newFood.y, canvas.height - box);
                 
                 overlapping = snake.some(segment => 
                     segment.x === newFood.x && segment.y === newFood.y
@@ -251,8 +258,8 @@
             
             do {
                 newSpecialFood = {
-                    x: Math.floor(Math.random() * (canvas.width / box)) * box,
-                    y: Math.floor(Math.random() * (canvas.height / box)) * box,
+                    x: Math.floor(Math.random() * (GRID_SIZE - 2)) * box + box,
+                    y: Math.floor(Math.random() * (GRID_SIZE - 2)) * box + box,
                     type: type,
                     spawnTime: Date.now(),
                     initialPhase: true,
@@ -262,9 +269,6 @@
                     },
                     lastMoveTime: Date.now()
                 };
-                
-                newSpecialFood.x = Math.min(newSpecialFood.x, canvas.width - box);
-                newSpecialFood.y = Math.min(newSpecialFood.y, canvas.height - box);
                 
                 overlapping = snake.some(segment => 
                     segment.x === newSpecialFood.x && segment.y === newSpecialFood.y
@@ -294,20 +298,20 @@
                 let newX = specialFood.x + specialFood.moveDirection.x * box;
                 let newY = specialFood.y + specialFood.moveDirection.y * box;
                 
-                // Boundary checks
-                if (newX < 0) {
-                    newX = 0;
+                // Boundary checks con margine di 1 box
+                if (newX < box) {
+                    newX = box;
                     specialFood.moveDirection.x = 1;
                 } else if (newX >= canvas.width - box) {
-                    newX = canvas.width - box;
+                    newX = canvas.width - box * 2;
                     specialFood.moveDirection.x = -1;
                 }
                 
-                if (newY < 0) {
-                    newY = 0;
+                if (newY < box) {
+                    newY = box;
                     specialFood.moveDirection.y = 1;
                 } else if (newY >= canvas.height - box) {
-                    newY = canvas.height - box;
+                    newY = canvas.height - box * 2;
                     specialFood.moveDirection.y = -1;
                 }
                 
@@ -324,7 +328,7 @@
             if (direction === 'UP') head.y -= box;
             if (direction === 'DOWN') head.y += box;
             
-            // Boundary checks with wrapping
+            // Boundary checks con wrap-around
             if (head.x < 0) head.x = canvas.width - box;
             else if (head.x >= canvas.width) head.x = 0;
             if (head.y < 0) head.y = canvas.height - box;
@@ -387,13 +391,13 @@
         function drawGrid() {
             ctx.strokeStyle = 'rgba(50, 50, 50, 0.5)';
             ctx.lineWidth = 0.5;
-            for (let x = 0; x < canvas.width; x += box) {
+            for (let x = 0; x <= canvas.width; x += box) {
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, canvas.height);
                 ctx.stroke();
             }
-            for (let y = 0; y < canvas.height; y += box) {
+            for (let y = 0; y <= canvas.height; y += box) {
                 ctx.beginPath();
                 ctx.moveTo(0, y);
                 ctx.lineTo(canvas.width, y);
